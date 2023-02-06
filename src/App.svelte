@@ -5,56 +5,36 @@
     import Card from "./components/Card.svelte"
     let counter = 0
     let url = `https://pokeapi.co/api/v2/pokemon?limit=21&offset=${counter}`
-    let pokemonArray = []
-    let urlArray = []
-    let card
-    let pokemon
-
-    export let setCard = (statement) => {
-        card = statement
-    }
-
-    const setPokemon = (settedPokemon) => {
-        pokemon = settedPokemon
-    } 
+    let result
+    let promise
+    let pokemon = []
     
     onMount(async () => {
-        const res = await fetch(url)
-        const result = await res.json()
-        urlArray = result.results
-        let pokeArray = []
-    Promise.all(urlArray.map(url => {
-      fetch(url.url)
-      .then(response => response.json())
-      .then(response => {
-        pokeArray.push(response)
-        pokeArray.sort((a,b) => {
-          return a.id  - b.id
-        })
-        pokemonArray = [...pokeArray]
-      })
-    }))
+      const response = await fetch(url)
+      promise = response.json()
+
     })
-
-    console.log(urlArray)
-    
 </script>
-
 
 <main class="container mt-20 mx-auto">
 
     <Header/>
 
-    {#if (card)}
-      <Card setCard = {setCard} pokemon = {pokemon}/>
-      {console.log(card)}
-    {/if}
-
     <div class="md:grid grid-cols-3 gap-4 mt-20">
-      {#each pokemonArray  as pokemon }
-        
-        <Pokemon pokemon = {pokemon} setCard = {setCard} setPokemon = {setPokemon}/>
-      {/each}
+      {#await promise}
+        <div>
+          <h1>...waiting for info</h1>
+        </div>
+      {:then results}
+
+      {#if results !== undefined}
+        {#each results.results as pokemon }
+        <Pokemon url = {pokemon.url}/>
+        {/each}
+      {/if}
+      {:catch error}
+      <div>error.message</div>
+      {/await}
     </div>
     
     
